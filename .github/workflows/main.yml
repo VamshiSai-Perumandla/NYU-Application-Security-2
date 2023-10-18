@@ -1,0 +1,8 @@
+name: github-actions
+on: [push]
+jobs:
+  testing-site:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v2
+      - run: pip3 install django && pip3 install python-decouple && pip3 install djfernet && python3 manage.py test
