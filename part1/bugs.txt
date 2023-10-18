@@ -1,0 +1,36 @@
+Attack 1: XSS Attack
+Attack Description:
+An XSS attack was executed on the director parameter of the gift.html page using the following URL:
+http://127.0.0.1:8000/buy.html?director=%3Cscript%3Ealert(hello)%3C/script%3E
+
+Vulnerability and Fix:
+The file item-single.html was susceptible because it did not sanitize the input for the director parameter, allowing the script to run due to the use of the Django safe filter, which disables auto-escaping. The vulnerable line of code was:
+<p>Endorsed by {{director|safe}}!</p>
+To mitigate this risk, the code was modified to:
+<p>Endorsed by {{director}}!</p>
+By removing the safe filter, the application now properly escapes the input, preventing the XSS attack.
+
+Attack 2: CSRF Attack
+Attack Description:
+A crafted HTML page, 'CSRF Attack Script.html', exploited the absence of CSRF protections, allowing an attacker to submit a form on behalf of a user, gifting a gift card to the attacker’s account.
+
+Fix:
+The vulnerability was mitigated by integrating Django's built-in CSRF token system. The {% csrf_token %} tag was inserted into the forms in the gift.html and item-single.html files, specifically at lines 79 and 80. Additionally, the @csrf_protect decorator was added in the views.py file, line 114. These measures ensure the validity of the user making the request, thus thwarting CSRF attacks.
+
+Attack 3: SQL Injection
+Attack Description:
+An SQL Injection attack was initiated through a .gftcrd file, aiming to retrieve hashed and salted passwords. The payload injected was:
+... 'f473054be372ba304427a9a13cc227c0' UNION Select password from LegacySite_user where username='admin';--
+The attack disclosed the hashed password of the 'admin' user.
+
+Fix:
+The attack was countered by parameterizing the SQL query associated with the signature variable in the views.py file. By avoiding direct string concatenation in the query, the application is now shielded against SQL Injection.
+
+Attack 4: Code Injection
+Attack Description:
+A code injection attack was conducted via the file upload functionality on the use.html page. Despite initial failures, the attack succeeded when the command appsec & touch test.txt ; was injected, resulting in the creation of a 'test.txt' file on the server.
+
+Fix:
+The vulnerability was addressed by enhancing input validation for the card_fname variable, ensuring it only accepts alphanumeric characters via the isalnum() method. This validation prevents the execution of injected malicious code, thereby securing the file upload functionality.
+
+These descriptions provide a concise yet comprehensive overview of the vulnerabilities and their respective fixes.
