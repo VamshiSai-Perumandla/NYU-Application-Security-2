@@ -4,5 +4,5 @@ jobs:
   testing-site:
     runs-on: self-hosted
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - run: pip3 install django && pip3 install python-decouple && pip3 install djfernet && python3 manage.py test
