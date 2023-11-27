@@ -1,45 +1,40 @@
+# Bug Report
 
-XSS Attack:
-Issue Identified:
-An XSS vulnerability was found in the gift.html page, specifically exploiting the director parameter. The attack vector used was:
-http://127.0.0.1:8000/buy.html?director=%3Cscript%3Ealert(hello)%3C/script%3E
+A brief description of the bugs found in the project
 
-Root Cause:
-This issue originated from the item-single.html file where the director parameter was marked with the safe filter of Django, disabling auto-escaping. This was evident in the code:
-<p>Endorsed by {{director|safe}}!</p>
+## Bug 1 (XSS)
 
-Resolution:
-The fix involved removing the safe filter, changing the line to:
-<p>Endorsed by {{director}}!</p>
-This alteration ensures that input is auto-escaped, neutralizing the potential XSS threat.
+About the bug leading to XSS vulnerability in the project:
 
-CSRF Attack:
-Issue Identified:
-A Cross-Site Request Forgery (CSRF) vulnerability was exploited using a specially crafted HTML page named 'xsrf.html'. The attack manipulated form submissions, allowing unauthorized commands.
+- The Web application is vulnerable to an XSS attack as the director parameter is not properly sanitized or escaped before being rendered in the buy and gift HTML template.
+- In the code, the director parameter is fetched from the GET request and assigned to the director key in the context dictionary. The context dictionary is then passed to the HTML template using Django's template rendering system. In the HTML template, the director variable is inserted into the page using the {{director|safe}} template tag. The safe filter tells Django that the value of director is safe to render as HTML and should not be escaped.
+- As the director parameter is under the control of the user, they could potentially inject a malicious script or HTML code into the parameter value, like the XSS payload: <script>alert("hello")</script>. If this payload is not properly sanitized or escaped before being rendered in the HTML template, it will be executed by the victim's browser and could lead to a successful XSS attack.
+- To prevent this vulnerability, it's important to properly sanitize or escape any user-controlled input before using it in HTML templates this is done by removing the safe tag in the template.
 
-Root Cause:
-The application lacked CSRF tokens, a crucial security measure to validate the authenticity of a request, making it vulnerable to such attacks.
+## Bug 2 (XSRF)
 
-Resolution:
-The solution was implemented by embedding Django's {% csrf_token %} within the forms of gift.html and item-single.html, and employing the @csrf_protect decorator in views.py. These actions fortified the application against CSRF by validating requests using tokens.
+About the bug leading to XSRF vulnerability in the project:
 
-SQL Injection:
-Issue Identified:
-An SQL Injection vulnerability was exploited to extract sensitive data, specifically hashed passwords. The attack was executed through a manipulated .gftcrd file containing the payload:
-{"merchant_id": "NYU Apparel Card", "customer_id": "test2", "total_value": "1234", "records": [{"record_type": "amount_change", "amount_added": 2000, "signature": "f473054be372ba304427a9a13cc227c0' UNION Select password from LegacySite_user where LegacySite_user.username='admin';--"}]}
+- The Web application is vulnerable to GET based XSRF attack as gift page doesn't use any XSRF protections while submitting the form.
+- In the code, the gift_card_view supports both GET and POST requests to gift a card to any vaild user.
+- As the page accepts both GET and POST request, an adversary can create a mailicoius webpage which send a GET request without the victim's knowledge and transfers the gift card.
+- To prevent this vulnerability, csrfmiddleware is used and the form template contains a randomly generated csrf token which is submitted with POST request and verified. Additonally GET based state change support in the Web application is completely removed.
 
-Root Cause:
-The flaw was in the application's handling of the signature variable within the views.py file, where the input was directly used in an SQL query without proper sanitization or parameterization.
+## Bug 3 (SQLi)
 
-Resolution:
-The fix was implemented by adapting the SQL query to use parameterized statements, thereby preventing the input from being interpreted as part of the query. This step effectively mitigates the risk of SQL Injection.
+About the bug leading to SQL injection vulnerability in the project:
 
-Code Injection:
-Issue Identified:
-A code injection vulnerability was discovered in the file upload feature on the use.html page. The successful attack vector was the command appsec & touch test.txt ;, which led to unauthorized file creation on the server.
+- The Web application is vulnerable to POST based SQL injection attack through giftcard uploaded in use page, the application doesn't sanitize the signature data before using it in a SQL statement.
+- In the code, the views.py a dynamic SQL query is generated for card_query variable using the signature of the giftcard uploaded by the user.
+- As the query is not parameterized, an adversary can add a malicios query in the signature section of the giftcard and upload it at the use.html website. The adversary can potentially dump all the information in the database even the usernames and passwords. Later the adversary can use them to login to the website.
+- To prevent this vulnerability, SQL query used to fetch the card through the card_query variable is parameterized and testcase is written to see if the admin password is retrived from the DB. 
+- Additonally, CSRF token is also embedded into the form submitted in use.html to avoid any XSRF based card use. This way and adversary can exhaust a user's card without his knowledge.
 
-Root Cause:
-The vulnerability stemmed from insufficient validation of the card_fname input, allowing attackers to execute arbitrary system commands through command injection.
+## Bug 4 (Cmdi)
 
-Resolution:
-To resolve this, stringent input validation was introduced, ensuring card_fname consists solely of alphanumeric characters by utilizing the isalnum() function. This measure prevents malicious code from being executed, securing the application from code injection threats.
+About the bug leading to Command injection vulnerability in the project:
+
+- The Web application is vulnerable to POST based Command injection attack through giftcard uploaded in use page, the application uses "Nameyourcard" in the website to get the card name from the user and uses it while converting a binary giftcard to json.
+- In the code, extra.py the application uses the card_path_name, which is "Nameyourcard" in the website and card_fname in the POST data, to run a system command where it runs the giftcardreader binary to convert the giftcar in binary to json format and process the data.
+- As the page accepts any malformed data, an adversary can carefully craft a POST request sending some random junk in the card data and this causes the application to run the giftcardreader binary on the adversary provided card_path_name. The adversary can append linux termianl commands in the card_path_name and make the system run them leading to arbitary command injection.
+- To prevent this vulnerability, instead of letting the user decide where to store the uploaded file and use the uploaded file path given to run the system command, a fixed file called binary is used. The system will store the uploaded file in by overwriting this file and run the giftcardreader executable on this file and redirect the output to the file. This way the user provided variables are not used in the system commadns and provide security against arbitary command injection. Everytime a binary giftcard is uploaded it the binary file used for the process is first cleared of old data and then overwritten.
