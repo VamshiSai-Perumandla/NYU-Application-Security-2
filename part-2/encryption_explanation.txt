@@ -58,7 +58,7 @@ Overview of Part-2:
     Issues Faced -
         When card.data was hashed and stored in the DB many functinality was broken is the views.py.
         The encryption and decryption is happening outside the DB in extra.py this lead to frequent chanegs in code segment to provide the data in expected format.
-        Key rotation part was a huge hurdle and using multiferent function the key rotation was added easily.
+        Key rotation part was a huge hurdle and using multiferent function the key rotation was added easily. 
     
     Additonal changes -
         The application sends a notification if a card is reused.
