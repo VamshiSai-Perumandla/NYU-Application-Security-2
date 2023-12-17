@@ -1,4 +1,4 @@
-# Bug Report
+# Bug Report 
 
 A brief description of the bugs found in the project
 
