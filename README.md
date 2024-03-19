@@ -80,7 +80,7 @@ you may want to look at the HTML source code of the templates and the code of
 each view, and find a way they can be exploited. Tools like burp suite can help
 in finding ways to attack the site, but are not required.
 
-Please submit these attacks in a folder called `part1` in your git repository:
+Attacks are found in a folder called `part1` in this git repository:
 
 1. `xss.txt`: A URL starting with `/foo`, when visited in
    a browser, causes `alert("hello")` to be executed.
@@ -208,60 +208,3 @@ Hints:
 * Not all database fields can be encrypted, in particular, keys that are used for the structure of the database, like primary and foreign keys, cannot be encrypted.
 
 * You should test the functionality of the site after encrypting a field. You may find that some functionality no longer works after encrypting a field (in particular, the logic used in the `use_card_view` to find a card in the database that matches what the user uploaded will no longer work once you encrypt the card data). You should modify the application code to fix this.
-
-## Grading
-
-Total points: 100
-
-Part 1 is worth 65 points:
-
-* 20 points for your attack cases (5 points for each attack)
-* 20 points for all fixes (5 points for each fix)
-* 10 points for the bug writeup
-* 10 points for GitHub Actions testing
-* 05 points for signed git commits
-
-Part 2 is worth 35 points:
-
-* 15 points for encrypted database models
-* 15 points for proper key management
-* 05 points for your writeup
-
-## What to Submit
-
-In order to submit your code, please only submit a file called `git_link.txt` that contains the name of your repository. 
-For example, if your GitHub account username is exampleaccount, you would submit a text file named `git_link.txt` to 
-Gradescope with only one line that reads the following:
-
-    assignment-1-exampleaccount
-
-The auto-grader will automatically find your code and download it.
-
-The repository should contain:
-
-* Part 1
-  * At least one signed commit
-  * A directory named `part1` that contains your attack cases.
-  * A GitHub Actions YAML that runs your tests.
-  * A commit with the fixed version of the code (if you like, this
-    commit can also contain the files mentioned above).
-* Part 2
-  * A directory named `part2` which contains your 
-    `encryption_explanation.txt` file.
-  * A commit with the version of the code that supports DB encryption
-    (if you like, this commit can also contain the files mentioned above).
-
-## Concluding Remarks
-
-Despite the fixes you've made, there are almost certainly still many
-bugs lurking in the program. Although it is possible to get to a secure
-program by repeatedly finding and fixing bugs, it's a lot of work.
-
-Though this program may be salvageable in its current state, it would be 
-better in this case to rewrite it from scratch, using proper style, 
-using Django addons for security purposes, and sticking to using ORMs 
-and avoiding reflected unfiltered user input to the users. The code as
-it exists now is difficult to read, and therefore difficult to fix. It
-also unnecessarily uses home-brewed solutions for things that can be solved
-easily with common libraries or Django built-ins. This is certainly not
-code that you should seek to reproduce or use as an example of good code.
